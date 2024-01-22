@@ -58,6 +58,25 @@ module ActiveRecord
       assert_equal({}, relation.where_values_hash)
     end
 
+    def test_where_and_where!_have_same_results
+      # Assume User has many Books, setup correctly. 3 books start with 'the'. 3 books don't
+      # query1 = User.first.books # .to_sql and results are identical to below
+      # query2 = User.first.books
+      relation_one = Relation.new(FakeKlass)
+      relation_two = Relation.new(FakeKlass)
+
+      where_bang = relation.where!(title: ["foo", "bar", "hello"])
+      where = relation.where(title: ["foo", "bar", "hello"])
+
+      # query1.where!('books.name ilike ?', 'the%')
+      # query2 = query2.where('books.name ilike ?', 'the%')
+
+      assert_equal(where.to_sql, where_bang.to_sql)
+
+      assert_equal(relation_one.count, relation_one.size)
+      assert_equal(relation_two.count, relation_two.size)
+    end
+
     def test_where_values_hash_with_in_clause
       relation = Relation.new(Post)
       relation.where!(title: ["foo", "bar", "hello"])
